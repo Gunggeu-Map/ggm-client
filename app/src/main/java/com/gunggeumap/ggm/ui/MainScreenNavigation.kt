@@ -11,6 +11,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.gunggeumap.ggm.ui.component.BottomNavBar
 import com.gunggeumap.ggm.ui.component.BottomNavItem
+import com.gunggeumap.ggm.ui.screen.HomeScreen
 
 @Composable
 fun MainScreen() {
@@ -47,9 +48,6 @@ fun MainScreen() {
         }
     }
 }
-
-@Composable
-fun HomeScreen() { /* TODO: 홈 화면 구성 */ }
 
 @Composable
 fun MapScreen() { /* TODO: 지도 화면 구성 */ }
