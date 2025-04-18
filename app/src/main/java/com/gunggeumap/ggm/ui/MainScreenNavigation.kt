@@ -1,0 +1,58 @@
+package com.gunggeumap.ggm.ui
+
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Scaffold
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.gunggeumap.ggm.ui.component.BottomNavBar
+import com.gunggeumap.ggm.ui.component.BottomNavItem
+
+@Composable
+fun MainScreen() {
+    val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route ?: ""
+
+    Scaffold(
+        bottomBar = {
+            BottomNavBar(
+                currentRoute = currentRoute,
+                onTabSelected = { selectedRoute ->
+                    if (selectedRoute != currentRoute) {
+                        navController.navigate(selectedRoute) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
+            )
+        }
+    ) { padding ->
+        NavHost(
+            navController = navController,
+            startDestination = BottomNavItem.Home.route,
+            modifier = Modifier.padding(padding)
+        ) {
+            composable(BottomNavItem.Home.route) { HomeScreen() }
+            composable(BottomNavItem.Map.route) { MapScreen() }
+            composable(BottomNavItem.MyPage.route) { MyPageScreen() }
+        }
+    }
+}
+
+@Composable
+fun HomeScreen() { /* TODO: 홈 화면 구성 */ }
+
+@Composable
+fun MapScreen() { /* TODO: 지도 화면 구성 */ }
+
+@Composable
+fun MyPageScreen() { /* TODO: 마이페이지 구성 */ }
