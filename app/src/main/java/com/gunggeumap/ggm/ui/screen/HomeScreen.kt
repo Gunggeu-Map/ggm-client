@@ -25,7 +25,11 @@ import com.gunggeumap.ggm.ui.component.TopBar
 import com.gunggeumap.ggm.ui.viewmodel.HomeViewModel
 
 @Composable
-fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
+fun HomeScreen(
+    viewModel: HomeViewModel = viewModel(),
+    onNavigateToDetail: (Long) -> Unit = {},
+    onNavigateToWrite: () -> Unit = {}
+) {
     val topQuestions by viewModel.topQuestions.collectAsState()
     val shortInfos by viewModel.shortInfos.collectAsState()
     val randomShortInfo = remember(shortInfos) { shortInfos.randomOrNull() }
@@ -56,8 +60,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .clickable {
-                            // TODO: Click
-                            println("Clicked Question ID: ${question.id}")
+                            onNavigateToDetail(question.id)
                         }
                         .padding(horizontal = 20.dp, vertical = 8.dp)
                 ) {
@@ -143,7 +146,7 @@ fun HomeScreen(viewModel: HomeViewModel = viewModel()) {
             contentAlignment = Alignment.BottomEnd
         ) {
             QuestionButton(
-                onClick = { /* 질문 작성 화면으로 이동 */ }
+                onClick = onNavigateToWrite
             )
         }
     }

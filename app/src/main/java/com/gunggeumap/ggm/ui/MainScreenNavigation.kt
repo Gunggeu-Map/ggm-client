@@ -12,6 +12,8 @@ import androidx.navigation.compose.rememberNavController
 import com.gunggeumap.ggm.ui.component.BottomNavBar
 import com.gunggeumap.ggm.ui.component.BottomNavItem
 import com.gunggeumap.ggm.ui.screen.HomeScreen
+import com.gunggeumap.ggm.ui.screen.QuestionDetailScreen
+import com.gunggeumap.ggm.ui.screen.QuestionWriteScreen
 
 @Composable
 fun MainScreen() {
@@ -42,9 +44,36 @@ fun MainScreen() {
             startDestination = BottomNavItem.Home.route,
             modifier = Modifier.padding(padding)
         ) {
-            composable(BottomNavItem.Home.route) { HomeScreen() }
+            composable(BottomNavItem.Home.route) {
+                HomeScreen(
+                    onNavigateToDetail = { questionId ->
+                        navController.navigate("questionDetail/$questionId")
+                    },
+                    onNavigateToWrite = {
+                        navController.navigate("questionWrite")
+                    }
+                )
+
+            }
             composable(BottomNavItem.Map.route) { MapScreen() }
             composable(BottomNavItem.MyPage.route) { MyPageScreen() }
+
+            composable("questionDetail/{questionId}") { backStackEntry ->
+                val questionId = backStackEntry.arguments?.getString("questionId")?.toLongOrNull()
+                questionId?.let {
+                    QuestionDetailScreen(
+                        questionId = it,
+                        onBackClick = { navController.popBackStack() }
+                    )
+                }
+            }
+
+            composable("questionWrite") {
+                QuestionWriteScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+
         }
     }
 }
