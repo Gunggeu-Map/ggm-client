@@ -85,7 +85,3 @@ fun MainScreen() {
         }
     }
 }
-
-/* 임시 마이페이지 */
-@Composable
-fun MyPageScreen() { /* TODO */ }
