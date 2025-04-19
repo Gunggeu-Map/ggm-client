@@ -78,7 +78,9 @@ dependencies {
     implementation("com.naver.maps:map-sdk:3.21.0")
     implementation(libs.play.services.location)
 
-    implementation("io.coil-kt:coil-compose:2.5.0")
+    implementation(libs.coil.compose)
+    implementation(libs.androidx.room.compiler)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -87,4 +89,9 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+
+configurations.all {
+    // com.intellij:annotations:12.0 제거
+    exclude(group = "com.intellij", module = "annotations")
 }
