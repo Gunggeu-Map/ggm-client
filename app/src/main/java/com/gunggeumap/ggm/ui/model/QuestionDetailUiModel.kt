@@ -10,6 +10,7 @@ data class QuestionDetailUiModel(
     val imgUrl: String?,
     val like: Int,
     val content: String,
+    val aiAnswer: AnswerUiModel?,
     val answers: List<AnswerUiModel>
 )
 

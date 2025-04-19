@@ -10,23 +10,30 @@ object QuestionMapper {
     fun toUi(
         q: QuestionDetailResponse,
         a: List<AnswerResponse>
-    ): QuestionDetailUiModel = QuestionDetailUiModel(
-        title = q.title,
-        category = q.category,
-        writerId = q.writerId,
-        imgUrl = q.imgUrl,
-        like = q.likeCount,
-        content = q.content,
-        answers = a.map { ar ->
-            AnswerUiModel(
-                writer = ar.writer,
-                content = ar.content,
-                createdAt = ar.createdAt,
-                like = ar.likeCount,
-                dislike = ar.dislikeCount,
-                isGpt = ar.isGpt,
-                userVote = ar.userVote
-            )
-        }
+    ): QuestionDetailUiModel {
+
+        val gptAnswerDto = a.find { it.isGpt }
+        val userAnswers  = a.filterNot { it.isGpt }
+
+        return QuestionDetailUiModel(
+            title     = q.title,
+            category  = q.category,
+            writerId  = q.writerId,
+            imgUrl    = q.imgUrl,
+            like      = q.likeCount,
+            content   = q.content,
+            aiAnswer  = gptAnswerDto?.let(::answerToUi ),
+            answers   = userAnswers.map(::answerToUi)
+        )
+    }
+
+    private fun answerToUi(dto: AnswerResponse) = AnswerUiModel(
+        writer     = dto.writer,
+        content    = dto.content,
+        createdAt  = dto.createdAt,
+        like       = dto.likeCount,
+        dislike    = dto.dislikeCount,
+        isGpt      = dto.isGpt,
+        userVote   = dto.userVote
     )
 }
