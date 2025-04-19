@@ -1,10 +1,12 @@
 package com.gunggeumap.ggm.data.remote
 
 import com.gunggeumap.ggm.data.model.ApiResult
+import com.gunggeumap.ggm.ui.viewmodel.dto.MapQuestionDetail
 import com.gunggeumap.ggm.ui.viewmodel.dto.MapQuestionSummary
 import com.gunggeumap.ggm.ui.viewmodel.dto.QuestionSummary
 import com.gunggeumap.ggm.ui.viewmodel.dto.ShortInfo
 import retrofit2.http.GET
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface GgmApiService {
@@ -21,4 +23,8 @@ interface GgmApiService {
         @Query("neLat") neLat: Double,
         @Query("neLng") neLng: Double
     ): ApiResult<List<MapQuestionSummary>>
+
+    @GET("api/questions/{id}")
+    suspend fun getQuestionDetail(@Path("id") id: Long): ApiResult<MapQuestionDetail>
+
 }

@@ -76,6 +76,8 @@ dependencies {
     implementation("com.naver.maps:map-sdk:3.21.0")
     implementation(libs.play.services.location)
 
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

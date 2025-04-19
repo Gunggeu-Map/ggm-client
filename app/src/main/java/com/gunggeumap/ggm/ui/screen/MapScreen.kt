@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material3.*
@@ -29,11 +30,13 @@ import com.google.android.gms.location.LocationServices
 import com.gunggeumap.ggm.data.remote.ApiClient
 import com.gunggeumap.ggm.model.Category
 import com.gunggeumap.ggm.ui.component.CategoryButton
+import com.gunggeumap.ggm.ui.component.QuestionBottomSheet
 import com.gunggeumap.ggm.ui.component.QuestionButton
 import com.gunggeumap.ggm.ui.component.SearchBar
 import com.gunggeumap.ggm.ui.map.addCustomMarker
 import com.gunggeumap.ggm.ui.permission.RequestLocationPermission
 import com.gunggeumap.ggm.ui.permission.SettingsPermissionDialog
+import com.gunggeumap.ggm.ui.viewmodel.dto.MapQuestionDetail
 import com.gunggeumap.ggm.ui.viewmodel.dto.MapQuestionSummary
 import com.naver.maps.geometry.LatLng
 import com.naver.maps.geometry.LatLngBounds
@@ -48,24 +51,28 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlin.math.abs
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapScreen(
     onBackClick: () -> Unit = {},
     onQuestionClick: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
+    val mapView = rememberMapViewWithLifecycle()
+    val locationSource = remember { FusedLocationSource(context as Activity, 1000) }
+    val naverMapState = remember { mutableStateOf<NaverMap?>(null) }
 
     var locationGranted by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
-    val mapView = rememberMapViewWithLifecycle()
-    val locationSource = remember { FusedLocationSource(context as Activity, 1000) }
-    val naverMapState = remember { mutableStateOf<NaverMap?>(null) }
+
     var lastBounds by remember { mutableStateOf<LatLngBounds?>(null) }
     val questionCache = remember { mutableMapOf<String, List<Pair<MapQuestionSummary, Marker>>>() }
+
+    var selectedQuestionDetail by remember { mutableStateOf<MapQuestionDetail?>(null) }
+    var showBottomSheet by remember { mutableStateOf(false) }
 
     RequestLocationPermission(
         onPermissionGranted = { locationGranted = true },
@@ -122,13 +129,23 @@ fun MapScreen(
                 )
             }
             if (response.success && response.data != null) {
-                val newMarkers = response.data.map {
+                val newMarkers = response.data.map { question ->
                     val marker = addCustomMarker(
                         map,
-                        LatLng(it.latitude, it.longitude),
-                        if (showTitle) it.title else ""
-                    )
-                    it to marker
+                        LatLng(question.latitude, question.longitude),
+                        if (showTitle) question.title else ""
+                    ) {
+                        scope.launch {
+                            val detailResponse = withContext(Dispatchers.IO) {
+                                ApiClient.api.getQuestionDetail(question.id)
+                            }
+                            if (detailResponse.success && detailResponse.data != null) {
+                                selectedQuestionDetail = detailResponse.data
+                                showBottomSheet = true
+                            }
+                        }
+                    }
+                    question to marker
                 }
                 questionCache[key] = newMarkers
             }
@@ -243,6 +260,27 @@ fun MapScreen(
                     color = MaterialTheme.colorScheme.error
                 )
             }
+        }
+
+        if (showBottomSheet && selectedQuestionDetail != null) {
+            val sheetState = rememberModalBottomSheetState(
+                skipPartiallyExpanded = true   // “절반 높이” 단계 건너뛰기
+            )
+
+            ModalBottomSheet(
+                sheetState = sheetState,
+                onDismissRequest = { showBottomSheet = false },
+                shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp
+            ) {
+                QuestionBottomSheet(
+                    detail = selectedQuestionDetail!!,
+                    onNavigateToDetail = { /* … */ },
+                    onDismiss = { showBottomSheet = false }
+                )
+            }
+
         }
     }
 
