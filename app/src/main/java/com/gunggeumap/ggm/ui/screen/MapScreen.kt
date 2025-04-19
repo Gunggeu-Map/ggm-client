@@ -174,7 +174,12 @@ fun MapScreen(
     /* ───── 검색 디바운스 ───── */
     LaunchedEffect(searchQuery, locationGranted) {
         if (!locationGranted) return@LaunchedEffect
-        if (searchQuery.isBlank()) { showResultSheet=false; return@LaunchedEffect }
+
+        if (searchQuery.length < 2) {
+            showResultSheet = false
+            return@LaunchedEffect
+        }
+
         delay(300); keywordSearch(false)
     }
 

@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -73,6 +74,16 @@ fun SearchBar(
                         Text(placeholder, color = Color.Gray, fontSize = 16.sp)
                     }
                     innerTextField()
+                }
+
+                if (value.isNotEmpty()) {
+                    Icon(
+                        Icons.Default.Close, contentDescription = "지우기",
+                        tint = Color.Gray,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .clickable { onValueChange("") }
+                    )
                 }
             }
         }
