@@ -1,6 +1,8 @@
 package com.gunggeumap.ggm.data.remote
 
 import com.gunggeumap.ggm.data.model.ApiResult
+import com.gunggeumap.ggm.ui.viewmodel.dto.AnswerResponse
+import com.gunggeumap.ggm.ui.viewmodel.dto.QuestionDetailResponse
 import com.gunggeumap.ggm.ui.viewmodel.dto.QuestionSummary
 import com.gunggeumap.ggm.ui.viewmodel.dto.ShortInfo
 import retrofit2.http.GET
