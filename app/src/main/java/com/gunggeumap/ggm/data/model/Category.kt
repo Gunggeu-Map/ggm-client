@@ -1,4 +1,4 @@
-package com.gunggeumap.ggm.model
+package com.gunggeumap.ggm.data.model
 
 enum class Category(val label: String) {
     NATURE("자연"),

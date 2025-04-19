@@ -32,4 +32,8 @@ interface GgmApiService {
         @Query("keyword") keyword: String
     ): ApiResult<List<MapQuestionSummary>>
 
+    @GET("api/questions/map/search/category")
+    suspend fun searchQuestionsByCategory(
+        @Query("category") category: String
+    ): ApiResult<List<MapQuestionSummary>>
 }
