@@ -4,7 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.gunggeumap.ggm.ui.MainScreen
+import com.gunggeumap.ggm.ui.screen.EntryScreen
 import com.gunggeumap.ggm.ui.theme.GgmTheme
 
 class MainActivity : ComponentActivity() {
@@ -13,7 +13,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             GgmTheme {
-                MainScreen()
+                EntryScreen()
             }
         }
     }
