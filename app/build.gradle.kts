@@ -58,11 +58,15 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material.icons.extended)
-
+    implementation("io.coil-kt:coil-compose:2.6.0")
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
+// Jetpack Compose 네비게이션 (없으면 추가)
+    implementation("androidx.navigation:navigation-compose:2.7.7")
 
+    // Coil – Compose용 이미지 로더
+    implementation("io.coil-kt:coil-compose:2.6.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
