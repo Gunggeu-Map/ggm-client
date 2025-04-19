@@ -28,6 +28,9 @@ fun MainScreen() {
                 currentRoute = currentRoute,
                 onTabSelected = { selectedRoute ->
                     if (selectedRoute != currentRoute) {
+                        // ✅ 질문 작성 화면이 쌓여 있다면 pop 시켜서 제거
+                        navController.popBackStack("questionWrite", inclusive = true)
+
                         navController.navigate(selectedRoute) {
                             popUpTo(navController.graph.startDestinationId) {
                                 saveState = true
@@ -54,10 +57,19 @@ fun MainScreen() {
                         navController.navigate("questionWrite")
                     }
                 )
-
             }
-            composable(BottomNavItem.Map.route) { MapScreen() }
-            composable(BottomNavItem.MyPage.route) { MyPageScreen() }
+
+            composable(BottomNavItem.Map.route) {
+                MapScreen(
+                    onQuestionClick = {
+                        navController.navigate("questionWrite")
+                    }
+                )
+            }
+
+            composable(BottomNavItem.MyPage.route) {
+                MyPageScreen()
+            }
 
             composable("questionDetail/{questionId}") { backStackEntry ->
                 val questionId = backStackEntry.arguments?.getString("questionId")?.toLongOrNull()
@@ -74,10 +86,11 @@ fun MainScreen() {
                     onBackClick = { navController.popBackStack() }
                 )
             }
-
         }
     }
 }
 
 @Composable
-fun MyPageScreen() { /* TODO: 마이페이지 구성 */ }
+fun MyPageScreen() {
+    // TODO: 마이페이지 구성
+}
