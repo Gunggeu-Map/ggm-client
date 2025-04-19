@@ -56,7 +56,12 @@ fun MainScreen() {
             /* ─── 지도 탭 ─── */
             composable(BottomNavItem.Map.route) {
                 MapScreen(
-                    onQuestionClick = { navController.navigate("questionWrite") }
+                    onQuestionClick = {
+                        navController.navigate("questionWrite")
+                    },
+                    onNavigateToDetail = { id ->
+                        navController.navigate("questionDetail/$id")
+                    }
                 )
             }
 
