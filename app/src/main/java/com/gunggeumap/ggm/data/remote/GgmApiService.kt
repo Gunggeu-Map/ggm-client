@@ -3,11 +3,15 @@ package com.gunggeumap.ggm.data.remote
 import com.gunggeumap.ggm.data.model.ApiResult
 import com.gunggeumap.ggm.ui.viewmodel.dto.AnswerResponse
 import com.gunggeumap.ggm.ui.viewmodel.dto.QuestionDetailResponse
+import com.gunggeumap.ggm.data.remote.dto.QuestionRegisterRequest
 import com.gunggeumap.ggm.ui.viewmodel.dto.MapQuestionDetail
 import com.gunggeumap.ggm.ui.viewmodel.dto.MapQuestionSummary
 import com.gunggeumap.ggm.ui.viewmodel.dto.QuestionSummary
 import com.gunggeumap.ggm.ui.viewmodel.dto.ShortInfo
+import retrofit2.Response
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -43,4 +47,10 @@ interface GgmApiService {
     suspend fun getAnswers(
         @Path("id") id: Long
     ): ApiResult<List<AnswerResponse>>
+
+    @POST("api/questions")
+    suspend fun registerQuestion(
+        @Body req: QuestionRegisterRequest
+    ): Response<Void>          // 200 OK 만 받으면 Void 로 充分
+
 }
