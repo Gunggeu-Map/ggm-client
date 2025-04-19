@@ -3,12 +3,12 @@ package com.gunggeumap.ggm.data.mapper
 import com.gunggeumap.ggm.ui.model.AnswerUiModel
 import com.gunggeumap.ggm.ui.model.QuestionDetailUiModel
 import com.gunggeumap.ggm.ui.viewmodel.dto.AnswerResponse
-import com.gunggeumap.ggm.ui.viewmodel.dto.QuestionDetailResponse
+import com.gunggeumap.ggm.ui.viewmodel.dto.MapQuestionDetail
 
 object QuestionMapper {
 
     fun toUi(
-        q: QuestionDetailResponse,
+        q: MapQuestionDetail,
         a: List<AnswerResponse>
     ): QuestionDetailUiModel {
 

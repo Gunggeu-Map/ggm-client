@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Send
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -109,7 +110,10 @@ private fun QuestionCard(data: QuestionDetailUiModel) {
             }
 
             Spacer(Modifier.height(12.dp))
-            Divider(thickness = 1.dp, color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+            HorizontalDivider(
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+            )
 
             /* 이미지 (있으면) */
             data.imgUrl?.let {
@@ -223,15 +227,13 @@ private fun BottomInputField(
 
             Spacer(Modifier.width(8.dp))
 
-            IconButton(
-                onClick = {
+            IconButton(onClick = {
                     if (text.isNotBlank()) {
                         onSend(text.trim())
                         text = ""
                     }
-                }
-            ) {
-                Icon(Icons.Outlined.Send, contentDescription = "전송")
+                }) {
+                Icon(Icons.AutoMirrored.Outlined.Send, contentDescription = "전송")
             }
         }
     }
