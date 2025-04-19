@@ -27,4 +27,9 @@ interface GgmApiService {
     @GET("api/questions/{id}")
     suspend fun getQuestionDetail(@Path("id") id: Long): ApiResult<MapQuestionDetail>
 
+    @GET("api/questions/map/search")
+    suspend fun searchQuestionsByKeyword(
+        @Query("keyword") keyword: String
+    ): ApiResult<List<MapQuestionSummary>>
+
 }
