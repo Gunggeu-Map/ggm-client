@@ -10,10 +10,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -23,6 +20,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.gunggeumap.ggm.ui.component.QuestionButton
 import com.gunggeumap.ggm.ui.component.TopBar
 import com.gunggeumap.ggm.ui.viewmodel.HomeViewModel
+import android.util.Log
+
 
 @Composable
 fun HomeScreen(
@@ -33,6 +32,13 @@ fun HomeScreen(
     val topQuestions by viewModel.topQuestions.collectAsState()
     val shortInfos by viewModel.shortInfos.collectAsState()
     val randomShortInfo = remember(shortInfos) { shortInfos.randomOrNull() }
+
+    LaunchedEffect(Unit) {
+        Log.d("HomeScreen", "LaunchedEffect 실행됨")
+        viewModel.fetchTopQuestions()
+        viewModel.cacheShortInfosIfNeeded()
+    }
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Column(modifier = Modifier.fillMaxSize()) {
