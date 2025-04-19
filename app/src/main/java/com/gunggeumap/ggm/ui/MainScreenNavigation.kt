@@ -63,6 +63,9 @@ fun MainScreen() {
                 MapScreen(
                     onQuestionClick = {
                         navController.navigate("questionWrite")
+                    },
+                    onNavigateToDetail = { id ->
+                        navController.navigate("questionDetail/$id")
                     }
                 )
             }

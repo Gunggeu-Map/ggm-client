@@ -53,7 +53,8 @@ import kotlin.math.abs
 @Composable
 fun MapScreen(
     onBackClick: () -> Unit = {},
-    onQuestionClick: () -> Unit = {}
+    onQuestionClick: () -> Unit = {},
+    onNavigateToDetail: (Long) -> Unit = {}
 ) {
     /* ───── 기본 준비 ───── */
     val context = LocalContext.current
@@ -74,6 +75,7 @@ fun MapScreen(
     var showResultSheet     by remember { mutableStateOf(false) }
 
     /* ───── 상세 시트 상태 ───── */
+    var selectedQuestionId     by remember { mutableStateOf<Long?>(null) }
     var selectedQuestionDetail by remember { mutableStateOf<MapQuestionDetail?>(null) }
     var showDetailSheet        by remember { mutableStateOf(false) }
 
@@ -134,6 +136,7 @@ fun MapScreen(
                         scope.launch {
                             val dRes = ApiClient.api.getQuestionDetail(q.id)
                             if (dRes.success && dRes.data != null) {
+                                selectedQuestionId     = q.id
                                 selectedQuestionDetail = dRes.data
                                 showDetailSheet = true
                             }
@@ -306,7 +309,11 @@ fun MapScreen(
             ) {
                 QuestionBottomSheet(
                     detail = selectedQuestionDetail!!,
-                    onNavigateToDetail = {},
+                    questionId = selectedQuestionId!!,
+                    onNavigateToDetail = { id ->
+                        showDetailSheet = false
+                        onNavigateToDetail(id)
+                    },
                     onDismiss = { showDetailSheet=false }
                 )
             }

@@ -19,7 +19,8 @@ import com.gunggeumap.ggm.ui.viewmodel.dto.MapQuestionDetail
 @Composable
 fun QuestionBottomSheet(
     detail: MapQuestionDetail,
-    onNavigateToDetail: () -> Unit,
+    questionId: Long,
+    onNavigateToDetail: (Long) -> Unit,
     onDismiss: () -> Unit
 ) {
     Column(
@@ -84,6 +85,19 @@ fun QuestionBottomSheet(
                     )
                 }
             }
+        }
+
+        Spacer(Modifier.height(20.dp))
+
+        Button(
+            onClick = {
+                onDismiss()
+                onNavigateToDetail(questionId)
+            },
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Text("상세 보기")
         }
     }
 }
