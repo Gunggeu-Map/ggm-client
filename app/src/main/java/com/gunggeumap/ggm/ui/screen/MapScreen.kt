@@ -25,19 +25,28 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.google.android.gms.location.LocationServices
+import com.gunggeumap.ggm.data.remote.ApiClient
 import com.gunggeumap.ggm.model.Category
 import com.gunggeumap.ggm.ui.component.CategoryButton
 import com.gunggeumap.ggm.ui.component.QuestionButton
 import com.gunggeumap.ggm.ui.component.SearchBar
+import com.gunggeumap.ggm.ui.map.addCustomMarker
 import com.gunggeumap.ggm.ui.permission.RequestLocationPermission
 import com.gunggeumap.ggm.ui.permission.SettingsPermissionDialog
+import com.gunggeumap.ggm.ui.viewmodel.dto.MapQuestionSummary
 import com.naver.maps.geometry.LatLng
+import com.naver.maps.geometry.LatLngBounds
 import com.naver.maps.map.CameraUpdate
 import com.naver.maps.map.LocationTrackingMode
 import com.naver.maps.map.MapView
 import com.naver.maps.map.NaverMap
+import com.naver.maps.map.overlay.Marker
 import com.naver.maps.map.util.FusedLocationSource
-import com.google.android.gms.location.LocationServices
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlin.math.abs
 
 @Composable
 fun MapScreen(
@@ -46,22 +55,85 @@ fun MapScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
 
     var locationGranted by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
-
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf<Category?>(null) }
-
     val mapView = rememberMapViewWithLifecycle()
     val locationSource = remember { FusedLocationSource(context as Activity, 1000) }
     val naverMapState = remember { mutableStateOf<NaverMap?>(null) }
+    var lastBounds by remember { mutableStateOf<LatLngBounds?>(null) }
+    val questionCache = remember { mutableMapOf<String, List<Pair<MapQuestionSummary, Marker>>>() }
 
     RequestLocationPermission(
         onPermissionGranted = { locationGranted = true },
         onPermissionDenied = { locationGranted = false },
         onPermissionPermanentlyDenied = { showSettingsDialog = true }
     )
+
+    fun LatLngBounds.cacheKey(): String =
+        "${southWest.latitude}_${southWest.longitude}_${northEast.latitude}_${northEast.longitude}"
+
+    fun hasMovedSignificantly(old: LatLngBounds?, new: LatLngBounds): Boolean {
+        if (old == null) return true
+        val threshold = 0.005
+        val oldCenter = old.center
+        val newCenter = new.center
+        return abs(oldCenter.latitude - newCenter.latitude) > threshold ||
+                abs(oldCenter.longitude - newCenter.longitude) > threshold
+    }
+
+    fun updateMarkerCaptions(map: NaverMap) {
+        val zoomLevel = map.cameraPosition.zoom
+        val showTitle = zoomLevel >= 13.5f
+        questionCache.values.flatten().forEach { (question, marker) ->
+            marker.captionText = if (showTitle) question.title else ""
+        }
+    }
+
+    fun loadQuestionsForBounds(map: NaverMap) {
+        val bounds = map.contentBounds
+        if (!hasMovedSignificantly(lastBounds, bounds)) {
+            updateMarkerCaptions(map)
+            return
+        }
+        lastBounds = bounds
+        val key = bounds.cacheKey()
+        val zoomLevel = map.cameraPosition.zoom
+        val showTitle = zoomLevel >= 13.5f
+
+        val cached = questionCache[key]
+        if (cached != null) {
+            cached.forEach { (question, marker) ->
+                marker.captionText = if (showTitle) question.title else ""
+            }
+            return
+        }
+
+        scope.launch {
+            val response = withContext(Dispatchers.IO) {
+                ApiClient.api.getQuestionsInMapBounds(
+                    swLat = bounds.southWest.latitude,
+                    swLng = bounds.southWest.longitude,
+                    neLat = bounds.northEast.latitude,
+                    neLng = bounds.northEast.longitude
+                )
+            }
+            if (response.success && response.data != null) {
+                val newMarkers = response.data.map {
+                    val marker = addCustomMarker(
+                        map,
+                        LatLng(it.latitude, it.longitude),
+                        if (showTitle) it.title else ""
+                    )
+                    it to marker
+                }
+                questionCache[key] = newMarkers
+            }
+        }
+    }
 
     LaunchedEffect(locationGranted) {
         if (locationGranted) {
@@ -72,12 +144,15 @@ fun MapScreen(
             if (permissionState == PackageManager.PERMISSION_GRANTED) {
                 val fusedLocationClient = LocationServices.getFusedLocationProviderClient(context)
                 fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                    if (location != null) {
-                        val latLng = LatLng(location.latitude, location.longitude)
-                        naverMapState.value?.moveCamera(CameraUpdate.scrollTo(latLng))
-                        naverMapState.value?.locationSource = locationSource
-                        locationSource.activate {}
-                        naverMapState.value?.locationTrackingMode = LocationTrackingMode.Follow
+                    location?.let {
+                        val latLng = LatLng(it.latitude, it.longitude)
+                        naverMapState.value?.let { map ->
+                            map.moveCamera(CameraUpdate.scrollTo(latLng))
+                            map.locationSource = locationSource
+                            locationSource.activate {}
+                            map.locationTrackingMode = LocationTrackingMode.Follow
+                            loadQuestionsForBounds(map)
+                        }
                     }
                 }
             }
@@ -86,11 +161,17 @@ fun MapScreen(
 
     Box(modifier = Modifier.fillMaxSize()) {
         if (locationGranted) {
-            AndroidView(factory = { mapView }) { view ->
+            AndroidView(factory = { mapView }) {
                 mapView.getMapAsync { naverMap ->
                     locationSource.activate {}
                     naverMap.locationSource = locationSource
                     naverMap.locationTrackingMode = LocationTrackingMode.Follow
+                    naverMap.addOnCameraIdleListener {
+                        loadQuestionsForBounds(naverMap)
+                    }
+                    naverMap.addOnCameraChangeListener { _, _ ->
+                        updateMarkerCaptions(naverMap)
+                    }
                     naverMapState.value = naverMap
                 }
             }
