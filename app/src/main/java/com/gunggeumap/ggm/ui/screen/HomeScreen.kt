@@ -32,64 +32,71 @@ import com.gunggeumap.ggm.ui.viewmodel.HomeViewModel
 fun HomeScreen(
     viewModel: HomeViewModel = viewModel(),
     onNavigateToDetail: (Long) -> Unit = {},
-    onNavigateToWrite: () -> Unit = {}
+    onNavigateToWrite: () -> Unit = {},
+    onNotificationClick: () -> Unit = {}          // 🔔 받는 람다
 ) {
+    /* --------------------------------------------------------------------- */
+    /* 상태 */
     val context = LocalContext.current
     val topQuestions by viewModel.topQuestions.collectAsState()
-    val shortInfos by viewModel.shortInfos.collectAsState()
+    val shortInfos   by viewModel.shortInfos.collectAsState()
     val randomShortInfo = remember(shortInfos) { shortInfos.randomOrNull() }
 
+    /* 첫 진입 시 데이터 로딩 */
     LaunchedEffect(Unit) {
-        Log.d("HomeScreen", "LaunchedEffect 실행됨")
+        Log.d("HomeScreen", "LaunchedEffect 실행")
         viewModel.fetchTopQuestions()
         viewModel.cacheShortInfosIfNeeded()
     }
 
     var showPermissionDialog by remember { mutableStateOf(false) }
 
+    /* --------------------------------------------------------------------- */
+    /* 위치 권한 런처 */
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { permissions ->
-        val granted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
-                permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true
+    ) { perms ->
+        val granted = perms[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
+                perms[Manifest.permission.ACCESS_COARSE_LOCATION] == true
 
-        if (granted) {
-            onNavigateToWrite()
-        } else {
-            Log.w("HomeScreen", "위치 권한 거부됨")
-        }
+        if (granted) onNavigateToWrite() else
+            Log.w("HomeScreen", "위치 권한 거부")
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(modifier = Modifier.fillMaxSize()) {
+    /* --------------------------------------------------------------------- */
+    /* UI */
+    Box(Modifier.fillMaxSize()) {
+
+        /* 메인 내용 */
+        Column(Modifier.fillMaxSize()) {
+
+            /* TopBar */
             TopBar(
                 title = "홈",
-                onNotificationClick = {}
+                onNotificationClick = onNotificationClick   // 여기!!
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(Modifier.height(16.dp))
 
+            /* 오늘의 질문 TOP5 ------------------------------------------------ */
             Text(
-                text = "🔥 오늘의 질문 TOP 5",
+                "🔥 오늘의 질문 TOP 5",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(Modifier.height(12.dp))
 
-            topQuestions.forEachIndexed { index, question ->
+            topQuestions.forEachIndexed { index, q ->
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { onNavigateToDetail(question.id) }
+                        .clickable { onNavigateToDetail(q.id) }
                         .padding(horizontal = 20.dp, vertical = 8.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
                                 .size(28.dp)
@@ -100,37 +107,38 @@ fun HomeScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "${index + 1}",
+                                "${index + 1}",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 14.sp,
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
-                        Spacer(modifier = Modifier.width(12.dp))
+                        Spacer(Modifier.width(12.dp))
                         Column {
                             Text(
-                                text = question.title,
+                                q.title,
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 16.sp,
                                 color = MaterialTheme.colorScheme.onBackground
                             )
-                            Spacer(modifier = Modifier.height(2.dp))
+                            Spacer(Modifier.height(2.dp))
                             Text(
-                                text = "답변 ${question.answerCount}  좋아요 ${question.likeCount}",
+                                "답변 ${q.answerCount}  좋아요 ${q.likeCount}",
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.height(10.dp))
-                    HorizontalDivider(modifier = Modifier.padding(start = 40.dp))
+                    Spacer(Modifier.height(10.dp))
+                    HorizontalDivider(Modifier.padding(start = 40.dp))
                 }
             }
 
-            Spacer(modifier = Modifier.height(28.dp))
+            /* 짧과 ------------------------------------------------------------- */
+            Spacer(Modifier.height(28.dp))
 
             Text(
-                text = "💡 짧.과 : 짧은 과학 상식",
+                "💡 짧.과 : 짧은 과학 상식",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
@@ -138,7 +146,7 @@ fun HomeScreen(
             )
 
             randomShortInfo?.let {
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(Modifier.height(12.dp))
                 Card(
                     shape = RoundedCornerShape(16.dp),
                     colors = CardDefaults.cardColors(
@@ -148,9 +156,9 @@ fun HomeScreen(
                         .padding(horizontal = 20.dp)
                         .fillMaxWidth()
                 ) {
-                    Box(modifier = Modifier.padding(20.dp)) {
+                    Box(Modifier.padding(20.dp)) {
                         Text(
-                            text = it.content,
+                            it.content,
                             fontSize = 15.sp,
                             color = MaterialTheme.colorScheme.onSecondaryContainer
                         )
@@ -158,9 +166,10 @@ fun HomeScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(Modifier.height(80.dp))
         }
 
+        /* 질문 작성 Floating 버튼 ------------------------------------------- */
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -181,9 +190,10 @@ fun HomeScreen(
                     } else {
                         val activity = context as? Activity
                         val showRationale = activity?.let {
-                            androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale(
-                                it, Manifest.permission.ACCESS_FINE_LOCATION
-                            )
+                            androidx.core.app.ActivityCompat
+                                .shouldShowRequestPermissionRationale(
+                                    it, Manifest.permission.ACCESS_FINE_LOCATION
+                                )
                         } ?: true
 
                         if (!showRationale) {
@@ -201,12 +211,15 @@ fun HomeScreen(
             )
         }
 
+        /* 위치 권한 거절 다이얼로그 ------------------------------------------ */
         if (showPermissionDialog) {
             val activity = context as? Activity
             AlertDialog(
                 onDismissRequest = { showPermissionDialog = false },
                 title = { Text("위치 권한이 필요합니다") },
-                text = { Text("질문을 등록하려면 위치 권한이 필요합니다.\n설정에서 권한을 허용해 주세요.") },
+                text = {
+                    Text("질문을 등록하려면 위치 권한이 필요합니다.\n설정에서 권한을 허용해 주세요.")
+                },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -216,14 +229,12 @@ fun HomeScreen(
                             }
                             activity?.startActivity(intent)
                         }
-                    ) {
-                        Text("설정으로 이동")
-                    }
+                    ) { Text("설정으로 이동") }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showPermissionDialog = false }) {
-                        Text("닫기")
-                    }
+                    TextButton(
+                        onClick = { showPermissionDialog = false }
+                    ) { Text("닫기") }
                 }
             )
         }

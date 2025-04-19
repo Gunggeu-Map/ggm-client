@@ -30,7 +30,7 @@ android {
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://10.21.22.183:8080/\"")
+            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/\"")
         }
         release {
             buildConfigField("String", "BASE_URL", "\"https://api.gunggeumap.com/\"")
@@ -72,8 +72,6 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
-// Jetpack Compose 네비게이션 (없으면 추가)
-    implementation("androidx.navigation:navigation-compose:2.7.7")
 
     implementation("com.naver.maps:map-sdk:3.21.0")
     implementation(libs.play.services.location)
