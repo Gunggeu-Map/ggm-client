@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -16,14 +19,21 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        val localProperties = Properties().apply {
+            load(FileInputStream(rootProject.file("local.properties")))
+        }
+        val naverClientId = localProperties.getProperty("NAVER_CLIENT_ID")
+            ?: throw GradleException("NAVER_CLIENT_ID가 local.properties에 없습니다.")
+        manifestPlaceholders["naver_client_id"] = naverClientId
     }
 
     buildTypes {
         debug {
-            buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8080/\"")
+            buildConfigField("String", "BASE_URL", "\"http://10.21.22.183:8080/\"")
         }
         release {
-            buildConfigField("String", "BASE_URL", "\"https://api.gunggeumap.com/\"") // 배포용 URL
+            buildConfigField("String", "BASE_URL", "\"https://api.gunggeumap.com/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -58,15 +68,18 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.material.icons.extended)
-    implementation("io.coil-kt:coil-compose:2.6.0")
+
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.logging.interceptor)
 // Jetpack Compose 네비게이션 (없으면 추가)
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
-    // Coil – Compose용 이미지 로더
-    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation("com.naver.maps:map-sdk:3.21.0")
+    implementation(libs.play.services.location)
+
+    implementation("io.coil-kt:coil-compose:2.5.0")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

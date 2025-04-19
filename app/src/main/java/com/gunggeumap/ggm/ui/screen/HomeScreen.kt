@@ -2,7 +2,10 @@ package com.gunggeumap.ggm.ui.screen
 
 import android.Manifest
 import android.app.Activity
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.provider.Settings
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -42,6 +45,8 @@ fun HomeScreen(
         viewModel.cacheShortInfosIfNeeded()
     }
 
+    var showPermissionDialog by remember { mutableStateOf(false) }
+
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -51,7 +56,6 @@ fun HomeScreen(
         if (granted) {
             onNavigateToWrite()
         } else {
-            // 권한 거부 안내
             Log.w("HomeScreen", "위치 권한 거부됨")
         }
     }
@@ -60,9 +64,7 @@ fun HomeScreen(
         Column(modifier = Modifier.fillMaxSize()) {
             TopBar(
                 title = "홈",
-                onNotificationClick = {
-                    // 알림 버튼 클릭 시 처리
-                }
+                onNotificationClick = {}
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -81,9 +83,7 @@ fun HomeScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable {
-                            onNavigateToDetail(question.id)
-                        }
+                        .clickable { onNavigateToDetail(question.id) }
                         .padding(horizontal = 20.dp, vertical = 8.dp)
                 ) {
                     Row(
@@ -179,12 +179,50 @@ fun HomeScreen(
                     if (fineGranted || coarseGranted) {
                         onNavigateToWrite()
                     } else {
-                        permissionLauncher.launch(
-                            arrayOf(
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.ACCESS_COARSE_LOCATION
+                        val activity = context as? Activity
+                        val showRationale = activity?.let {
+                            androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale(
+                                it, Manifest.permission.ACCESS_FINE_LOCATION
                             )
-                        )
+                        } ?: true
+
+                        if (!showRationale) {
+                            showPermissionDialog = true
+                        } else {
+                            permissionLauncher.launch(
+                                arrayOf(
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.ACCESS_COARSE_LOCATION
+                                )
+                            )
+                        }
+                    }
+                }
+            )
+        }
+
+        if (showPermissionDialog) {
+            val activity = context as? Activity
+            AlertDialog(
+                onDismissRequest = { showPermissionDialog = false },
+                title = { Text("위치 권한이 필요합니다") },
+                text = { Text("질문을 등록하려면 위치 권한이 필요합니다.\n설정에서 권한을 허용해 주세요.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showPermissionDialog = false
+                            val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.fromParts("package", context.packageName, null)
+                            }
+                            activity?.startActivity(intent)
+                        }
+                    ) {
+                        Text("설정으로 이동")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showPermissionDialog = false }) {
+                        Text("닫기")
                     }
                 }
             )
