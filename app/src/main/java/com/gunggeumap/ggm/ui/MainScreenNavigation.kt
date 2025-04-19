@@ -13,6 +13,7 @@ import com.gunggeumap.ggm.ui.component.BottomNavBar
 import com.gunggeumap.ggm.ui.component.BottomNavItem
 import com.gunggeumap.ggm.ui.screen.HomeScreen
 import com.gunggeumap.ggm.ui.screen.MapScreen
+import com.gunggeumap.ggm.ui.screen.MyPageScreen
 import com.gunggeumap.ggm.ui.screen.QuestionDetailScreen
 import com.gunggeumap.ggm.ui.screen.QuestionWriteScreen
 
@@ -88,9 +89,4 @@ fun MainScreen() {
             }
         }
     }
-}
-
-@Composable
-fun MyPageScreen() {
-    // TODO: 마이페이지 구성
 }
