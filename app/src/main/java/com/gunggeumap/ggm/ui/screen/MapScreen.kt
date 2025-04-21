@@ -299,7 +299,7 @@ fun MapScreen(
         }
 
         /* ───── 상세 시트 ───── */
-        if (showDetailSheet && selectedQuestionDetail != null) {
+        if (showDetailSheet && selectedQuestionDetail != null  && selectedQuestionId != null) {
             val sheet = rememberModalBottomSheetState(skipPartiallyExpanded = true)
             ModalBottomSheet(
                 sheetState = sheet,

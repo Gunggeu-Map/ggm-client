@@ -132,7 +132,7 @@ private fun QuestionCard(data: QuestionDetailUiModel) {
             Spacer(Modifier.height(20.dp))
 
             /* 본문 */
-            Text(data.content, fontSize = 14.sp)
+            Text(data.title, fontSize = 14.sp)
 
             /* AI 답변 */
             Spacer(Modifier.height(20.dp))
@@ -148,7 +148,7 @@ private fun QuestionCard(data: QuestionDetailUiModel) {
                         Text("AI 답변", fontWeight = FontWeight.Bold, fontSize = 14.sp)
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            text = data.aiAnswer?.content ?: "AI 답변이 아직 없습니다.",
+                            text = data.content ?: "AI 답변이 아직 없습니다.",
                             fontSize = 13.sp
                         )
                     }
