@@ -1,7 +1,9 @@
 package com.gunggeumap.ggm.ui.screen
 
+import android.Manifest
 import android.net.Uri
 import android.widget.Toast
+import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -22,8 +24,10 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
+import com.google.android.gms.location.LocationServices
 import com.gunggeumap.ggm.ui.component.TopBar
 import com.gunggeumap.ggm.ui.viewmodel.QuestionWriteViewModel
 import kotlinx.coroutines.launch
@@ -32,8 +36,6 @@ import kotlinx.coroutines.launch
 fun QuestionWriteScreen(
     onBackClick: () -> Unit,
     userId: Long = 1L,
-    latitude: Float = 37.566f,
-    longitude: Float = 126.978f,
     viewModel: QuestionWriteViewModel = viewModel()
 ) {
     /* ---- 입력 상태 ---- */
@@ -42,10 +44,47 @@ fun QuestionWriteScreen(
     var title by remember { mutableStateOf("") }
     var content by remember { mutableStateOf("") }
 
-    val pickImageLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
-            imageUri = uri
+    /* ---- 위치 상태 ---- */
+    var latitude by remember { mutableStateOf<Float?>(null) }
+    var longitude by remember { mutableStateOf<Float?>(null) }
+
+    val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
+
+    // 위치 권한 확인
+    val locationPermissionGranted = remember {
+        ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    // 위치 권한 요청 런처
+    val permissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    latitude = it.latitude.toFloat()
+                    longitude = it.longitude.toFloat()
+                }
+            }
         }
+    }
+
+    LaunchedEffect(Unit) {
+        if (locationPermissionGranted) {
+            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
+                location?.let {
+                    latitude = it.latitude.toFloat()
+                    longitude = it.longitude.toFloat()
+                }
+            }
+        } else {
+            permissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
 
     /* ---- ViewModel 상태 ---- */
     val loading by viewModel.loading.collectAsState()
@@ -53,7 +92,6 @@ fun QuestionWriteScreen(
 
     /* ---- Snackbar & CoroutineScope ---- */
     val snackbarHostState = remember { SnackbarHostState() }
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(result) {
@@ -80,6 +118,11 @@ fun QuestionWriteScreen(
                 .padding(horizontal = 24.dp)
         ) {
             /* 이미지 첨부 */
+            val pickImageLauncher =
+                rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+                    imageUri = uri
+                }
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -150,10 +193,17 @@ fun QuestionWriteScreen(
                         }
                         return@Button
                     }
+                    if (latitude == null || longitude == null) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("위치 정보를 불러오는 중입니다.")
+                        }
+                        return@Button
+                    }
+
                     viewModel.postQuestion(
                         userId, title, content,
                         imageUrl = null,
-                        lat = latitude, lng = longitude,
+                        lat = latitude!!, lng = longitude!!,
                         isPublic = isPublic
                     )
                 },
